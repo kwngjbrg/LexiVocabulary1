@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexi — Vocabulary Mastery Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   0. DESIGN TOKENS
+   ============================================================ */
+:root{
+  --primary:#4F46E5; --primary-dark:#4338CA; --accent:#06B6D4;
+  --bg-1:#F6F7FB; --bg-2:#EEF1FC;
+  --surface:rgba(255,255,255,0.65); --surface-solid:#ffffff; --surface-border:rgba(255,255,255,0.5);
+  --text-1:#191A23; --text-2:#5B5E70; --text-3:#9295A6;
+  --success:#16A34A; --danger:#E1483F; --star:#F5A623;
+  --shadow-soft:0 20px 50px -12px rgba(79,70,229,0.18), 0 4px 14px rgba(31,32,58,0.06);
+  --shadow-card:0 30px 60px -15px rgba(31,33,64,0.25), 0 10px 20px -8px rgba(31,33,64,0.12);
+  --radius-lg:28px; --radius-md:18px; --radius-sm:12px;
+  --ease:cubic-bezier(.22,.9,.32,1);
+}
+[data-theme="dark"]{
+  --bg-1:#0E0F14; --bg-2:#171A24;
+  --surface:rgba(30,32,44,0.6); --surface-solid:#1C1F2A; --surface-border:rgba(255,255,255,0.08);
+  --text-1:#F1F2F8; --text-2:#AEB1C2; --text-3:#71748A;
+  --shadow-soft:0 20px 50px -12px rgba(0,0,0,0.5), 0 4px 14px rgba(0,0,0,0.25);
+  --shadow-card:0 30px 70px -15px rgba(0,0,0,0.6), 0 10px 24px -8px rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0; font-family:'Inter', sans-serif; color:var(--text-1);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,0.12), transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, rgba(6,182,212,0.12), transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-attachment:fixed; min-height:100vh;
+  transition:background 0.4s var(--ease), color 0.4s var(--ease); overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:'Poppins', sans-serif;}
+::selection{background:var(--primary); color:#fff;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.25); border-radius:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ============================================================
+   1. SHELL / NAV
+   ============================================================ */
+.app-shell{max-width:1180px; margin:0 auto; padding:0 24px 80px;}
+.topbar{display:flex; align-items:center; justify-content:space-between; padding:22px 0 16px; gap:14px; flex-wrap:wrap;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Poppins',sans-serif; font-weight:700; font-size:20px; letter-spacing:-0.01em;}
+.brand-mark{width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, var(--primary), var(--accent)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; font-weight:800; box-shadow:0 8px 20px -6px rgba(79,70,229,0.55);}
+.nav-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.nav-pill{display:flex; gap:2px; padding:4px; background:var(--surface); border:1px solid var(--surface-border); border-radius:100px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:var(--shadow-soft); flex-wrap:wrap;}
+.nav-pill button{border:none; background:transparent; color:var(--text-2); padding:9px 14px; border-radius:100px; font-size:13px; font-weight:600; transition:all 0.3s var(--ease); position:relative; overflow:hidden; white-space:nowrap;}
+.nav-pill button.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; box-shadow:0 6px 16px -4px rgba(79,70,229,0.6);}
+.nav-pill button:not(.active):hover{color:var(--text-1); background:rgba(127,127,127,0.08);}
+.icon-btn{width:42px; height:42px; border-radius:50%; border:1px solid var(--surface-border); background:var(--surface); backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; font-size:17px; box-shadow:var(--shadow-soft); transition:transform 0.4s var(--ease); flex-shrink:0;}
+.icon-btn:hover{transform:rotate(12deg) scale(1.06);}
+.avatar-chip{display:flex; align-items:center; gap:9px; padding:5px 14px 5px 5px; background:var(--surface); border:1px solid var(--surface-border); border-radius:100px; backdrop-filter:blur(16px); box-shadow:var(--shadow-soft); font-size:13.5px; font-weight:600;}
+.avatar-circle{width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;}
+
+.page{display:none; animation:fadeIn 0.5s var(--ease);}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+/* ============================================================
+   2. BUTTONS / CHIPS
+   ============================================================ */
+.btn{position:relative; overflow:hidden; border:none; border-radius:16px; padding:15px 28px; font-weight:600; font-size:15px; transition:transform 0.25s var(--ease), box-shadow 0.25s var(--ease), filter 0.25s var(--ease); display:inline-flex; align-items:center; justify-content:center; gap:8px;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; box-shadow:0 14px 30px -10px rgba(79,70,229,0.6);}
+.btn-primary:hover{filter:brightness(1.08); box-shadow:0 18px 36px -8px rgba(79,70,229,0.7);}
+.btn-accent{background:linear-gradient(135deg, var(--accent), #0891A8); color:#fff; box-shadow:0 14px 30px -10px rgba(6,182,212,0.55);}
+.btn-ghost{background:var(--surface); color:var(--text-1); border:1px solid var(--surface-border); backdrop-filter:blur(12px);}
+.btn-ghost:hover{background:rgba(127,127,127,0.1);}
+.btn-danger-ghost{background:rgba(225,72,63,0.1); color:var(--danger); border:1px solid rgba(225,72,63,0.25);}
+.btn-danger-ghost:hover{background:rgba(225,72,63,0.18);}
+.btn-lg{padding:19px 40px; font-size:16.5px; border-radius:20px;}
+.btn-block{width:100%;}
+.btn:disabled{opacity:0.4; cursor:not-allowed; filter:none; transform:none;}
+.ripple{position:absolute; border-radius:50%; transform:scale(0); animation:ripple-anim 0.6s var(--ease); background:rgba(255,255,255,0.5); pointer-events:none;}
+[data-theme="dark"] .ripple{background:rgba(255,255,255,0.25);}
+@keyframes ripple-anim{to{transform:scale(3.2); opacity:0;}}
+.chip{font-size:12.5px; font-weight:600; padding:8px 13px; border-radius:100px; border:1px solid var(--surface-border); background:var(--surface); color:var(--text-2); backdrop-filter:blur(10px); transition:all 0.25s var(--ease); display:inline-flex; align-items:center; gap:6px;}
+.chip:hover{color:var(--text-1);}
+.chip.on{background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border-color:transparent;}
+
+/* ============================================================
+   3. AUTH PAGES
+   ============================================================ */
+.auth-wrap{min-height:88vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+.auth-card{width:100%; max-width:420px; background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-lg); padding:40px 34px; backdrop-filter:blur(22px); box-shadow:var(--shadow-soft); animation:fadeIn 0.5s var(--ease);}
+.auth-card .brand{justify-content:center; margin-bottom:4px;}
+.auth-title{text-align:center; font-size:24px; font-weight:700; margin:14px 0 6px;}
+.auth-sub{text-align:center; color:var(--text-2); font-size:14px; margin:0 0 26px;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12.5px; font-weight:700; color:var(--text-2); margin-bottom:7px; letter-spacing:0.02em;}
+.field input, .field select, .field textarea{width:100%; padding:13px 16px; border-radius:13px; border:1.5px solid var(--surface-border); background:rgba(127,127,127,0.05); color:var(--text-1); font-size:14.5px; transition:border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(79,70,229,0.14);}
+.field-row{display:flex; gap:12px;}
+.field-row .field{flex:1;}
+.auth-switch{text-align:center; margin-top:20px; font-size:13.5px; color:var(--text-2);}
+.auth-switch button{background:none; border:none; color:var(--primary); font-weight:700; font-size:13.5px; padding:0;}
+.auth-error{background:rgba(225,72,63,0.1); color:var(--danger); padding:11px 15px; border-radius:12px; font-size:13.5px; margin-bottom:16px; display:none;}
+.auth-error.show{display:block;}
+.avatar-picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;}
+.avatar-opt{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:19px; background:rgba(127,127,127,0.08); border:2px solid transparent; transition:all 0.2s var(--ease);}
+.avatar-opt.on{border-color:var(--primary); background:rgba(79,70,229,0.12); transform:scale(1.08);}
+
+/* ============================================================
+   4. DASHBOARD
+   ============================================================ */
+.dash-hero{display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:26px; flex-wrap:wrap;}
+.dash-hero h1{font-size:28px; margin:0 0 6px; letter-spacing:-0.02em;}
+.dash-hero p{margin:0; color:var(--text-2); font-size:14.5px;}
+.streak-badge{display:flex; align-items:center; gap:10px; background:linear-gradient(135deg, rgba(245,166,35,0.16), rgba(225,72,63,0.1)); border:1px solid rgba(245,166,35,0.3); padding:12px 20px; border-radius:16px; font-weight:700;}
+.streak-badge .flame{font-size:22px;}
+
+.grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px;}
+.grid-2{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:20px;}
+.stat-card{background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-md); padding:20px; text-align:center; backdrop-filter:blur(16px); box-shadow:var(--shadow-soft); transition:transform 0.3s var(--ease);}
+.stat-card:hover{transform:translateY(-4px);}
+.stat-num{font-family:'Poppins',sans-serif; font-size:26px; font-weight:700; background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.stat-label{font-size:12px; color:var(--text-2); margin-top:4px; font-weight:600; letter-spacing:0.02em;}
+
+.panel{background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-lg); padding:26px; backdrop-filter:blur(20px); box-shadow:var(--shadow-soft); margin-bottom:20px;}
+.panel h3{margin:0 0 16px; font-size:17px;}
+.goal-row{display:flex; align-items:center; gap:14px; margin-bottom:16px;}
+.goal-row:last-child{margin-bottom:0;}
+.goal-label{width:80px; font-size:13px; font-weight:700; color:var(--text-2); flex-shrink:0;}
+.goal-track{flex:1; height:10px; border-radius:100px; background:rgba(127,127,127,0.15); overflow:hidden;}
+.goal-fill{height:100%; border-radius:100px; background:linear-gradient(90deg,var(--primary),var(--accent)); transition:width 0.6s var(--ease);}
+.goal-num{font-size:12.5px; color:var(--text-2); width:64px; text-align:right; flex-shrink:0; font-weight:600;}
+
+.calendar-grid{display:grid; grid-template-columns:repeat(14, 1fr); gap:4px;}
+.cal-cell{aspect-ratio:1; border-radius:4px; background:rgba(127,127,127,0.12);}
+.cal-cell[data-level="1"]{background:rgba(79,70,229,0.3);}
+.cal-cell[data-level="2"]{background:rgba(79,70,229,0.55);}
+.cal-cell[data-level="3"]{background:rgba(79,70,229,0.8);}
+.cal-cell[data-level="4"]{background:linear-gradient(135deg,var(--primary),var(--accent));}
+
+.xp-ring-wrap{display:flex; align-items:center; gap:18px;}
+.level-badge{width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; box-shadow:0 10px 24px -8px rgba(79,70,229,0.55);}
+.level-badge span{font-size:9px; font-weight:600; opacity:0.85;}
+.level-badge b{font-size:20px; line-height:1;}
+
+.mode-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px;}
+.mode-card{background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-md); padding:22px; cursor:pointer; transition:all 0.3s var(--ease); backdrop-filter:blur(16px); box-shadow:var(--shadow-soft); text-align:left;}
+.mode-card:hover{transform:translateY(-5px); box-shadow:var(--shadow-card);}
+.mode-card .m-icon{font-size:28px; margin-bottom:12px; display:block;}
+.mode-card h4{margin:0 0 6px; font-size:16px;}
+.mode-card p{margin:0; font-size:13px; color:var(--text-2); line-height:1.5;}
+
+/* ============================================================
+   5. INPUT PAGE
+   ============================================================ */
+.hero{text-align:center; max-width:640px; margin:10px auto 30px;}
+.hero .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--primary); background:rgba(79,70,229,0.1); padding:7px 14px; border-radius:100px; margin-bottom:18px;}
+.hero h1{font-size:34px; font-weight:700; letter-spacing:-0.02em; margin:0 0 12px; line-height:1.15;}
+.hero p{color:var(--text-2); font-size:15.5px; line-height:1.6; margin:0;}
+.input-card{background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-lg); padding:32px; backdrop-filter:blur(20px); box-shadow:var(--shadow-soft);}
+textarea#vocabInput{width:100%; min-height:280px; resize:vertical; border-radius:var(--radius-md); border:1.5px solid var(--surface-border); background:rgba(127,127,127,0.05); padding:22px; font-family:'Inter',monospace; font-size:15px; line-height:1.8; color:var(--text-1); transition:border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);}
+textarea#vocabInput:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(79,70,229,0.14);}
+textarea#vocabInput::placeholder{color:var(--text-3); line-height:1.9;}
+.input-footer{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:22px; flex-wrap:wrap;}
+.saved-info{font-size:14px; color:var(--text-2); display:flex; align-items:center; gap:8px;}
+.saved-info b{color:var(--text-1);}
+.format-hint{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--text-2); margin-top:16px; padding:14px 16px; background:rgba(6,182,212,0.08); border-radius:12px;}
+.enrich-bar{margin-top:16px; display:none;}
+.enrich-bar.show{display:block;}
+.enrich-track{height:6px; border-radius:100px; background:rgba(127,127,127,0.15); overflow:hidden; margin-top:8px;}
+.enrich-fill{height:100%; background:linear-gradient(90deg,var(--accent),var(--primary)); border-radius:100px; transition:width 0.3s var(--ease); width:0%;}
+
+/* ============================================================
+   6. FLASHCARD / STUDY SESSION
+   ============================================================ */
+.learn-top{display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:10px; flex-wrap:wrap;}
+.progress-wrap{flex:1; min-width:220px;}
+.progress-meta{display:flex; justify-content:space-between; font-size:13px; color:var(--text-2); margin-bottom:8px; font-weight:600;}
+.progress-track{height:8px; border-radius:100px; background:rgba(127,127,127,0.15); overflow:hidden;}
+.progress-fill{height:100%; border-radius:100px; background:linear-gradient(90deg,var(--primary),var(--accent)); transition:width 0.5s var(--ease); width:0%;}
+.mode-controls{display:flex; gap:8px; flex-wrap:wrap;}
+
+.deck-zone{display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 10px 20px; perspective:1600px; position:relative; min-height:420px;}
+.deck-stack{position:relative; width:min(480px, 92vw); height:310px;}
+.deck-behind{position:absolute; inset:0; border-radius:var(--radius-lg); background:var(--surface-solid); border:1px solid var(--surface-border); box-shadow:var(--shadow-card);}
+.deck-behind.b2{transform:translateY(14px) scale(0.94) rotate(-4deg); opacity:0.5; z-index:1;}
+.deck-behind.b1{transform:translateY(7px) scale(0.97) rotate(2deg); opacity:0.75; z-index:2;}
+.flashcard{position:relative; width:100%; height:100%; z-index:3; cursor:pointer; transform-style:preserve-3d; transition:transform 0.6s var(--ease);}
+.flashcard.flipped{transform:rotateY(180deg);}
+.flashcard.pulse{animation:cardIn 0.45s var(--ease);}
+@keyframes cardIn{from{opacity:0; transform:translateY(18px) scale(0.96);} to{opacity:1; transform:translateY(0) scale(1);}}
+.card-face{position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:var(--radius-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center; background:var(--surface); border:1px solid var(--surface-border); backdrop-filter:blur(22px); box-shadow:var(--shadow-card);}
+.card-face.back{transform:rotateY(180deg); background:linear-gradient(150deg, rgba(79,70,229,0.16), rgba(6,182,212,0.16)), var(--surface);}
+.card-tag{position:absolute; top:20px; left:24px; font-size:11.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3);}
+.card-word{font-family:'Poppins',sans-serif; font-size:clamp(26px,5vw,40px); font-weight:700; letter-spacing:-0.02em; color:var(--text-1); word-break:break-word;}
+.card-ipa{margin-top:8px; font-size:15px; color:var(--accent); font-weight:600;}
+.card-pos{display:inline-block; margin-top:8px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; background:rgba(79,70,229,0.12); color:var(--primary); padding:3px 10px; border-radius:100px;}
+.card-sub{margin-top:10px; font-size:13.5px; color:var(--text-2);}
+.fav-star{position:absolute; top:16px; right:18px; font-size:22px; background:none; border:none; color:var(--text-3); transition:transform 0.25s var(--ease), color 0.25s var(--ease);}
+.fav-star:hover{transform:scale(1.2) rotate(-8deg);}
+.fav-star.active{color:var(--star);}
+.flip-hint{position:absolute; bottom:16px; font-size:11.5px; color:var(--text-3);}
+.card-actions{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:30px; flex-wrap:wrap;}
+.empty-state{text-align:center; padding:80px 20px; color:var(--text-2);}
+.empty-state h2{margin-bottom:10px;}
+.empty-state .icon{font-size:48px; margin-bottom:18px;}
+
+/* Typing / write-the-word */
+.type-panel{width:min(560px,94vw); margin:20px auto 0; text-align:center;}
+.type-prompt{font-family:'Poppins',sans-serif; font-size:clamp(26px,5vw,38px); font-weight:700; margin-bottom:6px;}
+.type-hint{color:var(--text-2); font-size:13.5px; margin-bottom:22px;}
+.type-input{width:100%; padding:18px 20px; font-size:18px; text-align:center; border-radius:16px; border:2px solid var(--surface-border); background:var(--surface); color:var(--text-1); transition:all 0.25s var(--ease);}
+.type-input:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 5px rgba(79,70,229,0.14);}
+.type-input.correct{border-color:var(--success); box-shadow:0 0 0 5px rgba(22,163,74,0.15);}
+.type-input.wrong{border-color:var(--danger); box-shadow:0 0 0 5px rgba(225,72,63,0.15); animation:shake 0.4s;}
+@keyframes shake{10%,90%{transform:translateX(-2px);}20%,80%{transform:translateX(4px);}30%,50%,70%{transform:translateX(-8px);}40%,60%{transform:translateX(8px);}}
+.type-feedback{margin-top:16px; font-size:14.5px; font-weight:600; min-height:22px;}
+.type-feedback.correct{color:var(--success);}
+.type-feedback.wrong{color:var(--danger);}
+
+/* Quiz / multiple choice */
+.quiz-options{display:grid; grid-template-columns:1fr 1fr; gap:14px; width:min(560px,94vw); margin:24px auto 0;}
+.quiz-opt{padding:20px; border-radius:16px; background:var(--surface); border:1.5px solid var(--surface-border); font-size:16px; font-weight:600; text-align:center; transition:all 0.25s var(--ease); backdrop-filter:blur(14px);}
+.quiz-opt:hover{border-color:var(--primary); transform:translateY(-3px);}
+.quiz-opt.correct{background:rgba(22,163,74,0.16); border-color:var(--success); color:var(--success);}
+.quiz-opt.wrong{background:rgba(225,72,63,0.16); border-color:var(--danger); color:var(--danger);}
+.quiz-opt:disabled{cursor:default; transform:none;}
+
+/* Matching game */
+.match-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:100%; max-width:760px; margin:10px auto;}
+@media (max-width:640px){.match-grid{grid-template-columns:repeat(2,1fr);}}
+.match-tile{padding:20px 10px; border-radius:14px; background:var(--surface); border:1.5px solid var(--surface-border); text-align:center; font-weight:600; font-size:14.5px; transition:all 0.25s var(--ease); min-height:70px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(14px);}
+.match-tile:hover{transform:translateY(-3px); border-color:var(--primary);}
+.match-tile.selected{border-color:var(--primary); background:rgba(79,70,229,0.14);}
+.match-tile.matched{background:rgba(22,163,74,0.14); border-color:var(--success); color:var(--success); opacity:0.6; cursor:default;}
+.match-tile.shake{animation:shake 0.4s;}
+
+/* Session summary */
+.summary-card{max-width:480px; margin:40px auto; text-align:center; padding:44px 34px;}
+.summary-card .big-emoji{font-size:56px; margin-bottom:14px;}
+.summary-stats{display:flex; justify-content:center; gap:30px; margin:26px 0;}
+.summary-stat b{display:block; font-size:26px; font-family:'Poppins',sans-serif;}
+.summary-stat span{font-size:12.5px; color:var(--text-2);}
+
+/* ============================================================
+   7. REVIEW PAGE
+   ============================================================ */
+.review-head{display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; margin-bottom:20px;}
+.toolbar{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px;}
+.search-box{flex:1; min-width:220px; position:relative;}
+.search-box input{width:100%; padding:13px 18px 13px 42px; border-radius:14px; border:1.5px solid var(--surface-border); background:var(--surface); backdrop-filter:blur(14px); color:var(--text-1); font-size:14.5px; transition:border-color 0.25s var(--ease);}
+.search-box input:focus{outline:none; border-color:var(--primary);}
+.search-box::before{content:"🔍"; position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:14px; opacity:0.6;}
+.table-wrap{background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-lg); overflow:hidden; backdrop-filter:blur(18px); box-shadow:var(--shadow-soft);}
+table{width:100%; border-collapse:collapse;}
+thead th{text-align:left; padding:15px 18px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-2); font-weight:700; border-bottom:1px solid var(--surface-border); background:rgba(127,127,127,0.05);}
+tbody td{padding:13px 18px; border-bottom:1px solid var(--surface-border); font-size:14px; vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background 0.2s var(--ease);}
+tbody tr:hover{background:rgba(79,70,229,0.05);}
+.cell-en{font-weight:700; color:var(--text-1);}
+.cell-en small{display:block; font-weight:500; color:var(--accent); font-size:12px; margin-top:2px;}
+.tag-wrong{font-size:10.5px; font-weight:700; color:var(--danger); background:rgba(225,72,63,0.12); padding:2px 8px; border-radius:100px; margin-left:6px;}
+.sentence-input{width:100%; border:1.5px solid transparent; background:rgba(127,127,127,0.06); border-radius:10px; padding:9px 12px; font-size:13.5px; color:var(--text-1); transition:all 0.25s var(--ease); font-family:inherit;}
+.sentence-input:focus{outline:none; border-color:var(--primary); background:var(--surface-solid); box-shadow:0 0 0 4px rgba(79,70,229,0.12);}
+.row-fav-btn{background:none; border:none; font-size:16px; color:var(--text-3); transition:transform 0.2s var(--ease);}
+.row-fav-btn.active{color:var(--star);}
+.row-fav-btn:hover{transform:scale(1.2);}
+.no-results{text-align:center; padding:50px; color:var(--text-2);}
+.detail-toggle{background:none;border:none;color:var(--text-3);font-size:13px;}
+.detail-row td{background:rgba(127,127,127,0.04); font-size:13px; color:var(--text-2); padding:16px 18px;}
+.detail-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px;}
+.detail-grid b{color:var(--text-1);}
+.finish-banner{text-align:center; padding:30px; border-radius:var(--radius-lg); margin-bottom:26px; background:linear-gradient(135deg, rgba(79,70,229,0.14), rgba(6,182,212,0.14)); border:1px solid var(--surface-border);}
+.finish-banner h2{margin:0 0 8px;}
+.finish-banner p{margin:0; color:var(--text-2);}
+
+/* ============================================================
+   8. SEARCH (DICTIONARY) PAGE
+   ============================================================ */
+.dict-search-bar{display:flex; align-items:center; gap:12px; margin-bottom:24px;}
+.dict-switch{display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--surface-border); border-radius:100px; padding:6px 16px; font-size:13px; font-weight:700; backdrop-filter:blur(14px);}
+.dict-switch button{background:none; border:none; color:var(--text-3); font-size:18px; transition:transform 0.3s var(--ease);}
+.dict-switch button:hover{transform:rotate(180deg); color:var(--primary);}
+.dict-results{display:flex; flex-direction:column; gap:12px;}
+.dict-result{background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius-md); padding:20px; backdrop-filter:blur(16px); box-shadow:var(--shadow-soft);}
+.dict-result-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+.dict-result-head h4{margin:0; font-size:20px; font-family:'Poppins',sans-serif;}
+
+/* ============================================================
+   9. PROFILE / SETTINGS
+   ============================================================ */
+.profile-head{display:flex; align-items:center; gap:22px; margin-bottom:26px; flex-wrap:wrap;}
+.profile-avatar-lg{width:84px; height:84px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:700; box-shadow:0 14px 30px -8px rgba(79,70,229,0.55);}
+.profile-name{font-size:24px; font-weight:700; margin:0 0 4px;}
+.profile-meta{color:var(--text-2); font-size:13.5px;}
+.settings-section{margin-bottom:10px;}
+.settings-row{display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--surface-border); gap:16px; flex-wrap:wrap;}
+.settings-row:last-child{border-bottom:none;}
+.settings-row-label b{display:block; font-size:14.5px;}
+.settings-row-label span{font-size:12.5px; color:var(--text-2);}
+.switch{position:relative; width:48px; height:26px; border-radius:100px; background:rgba(127,127,127,0.25); flex-shrink:0; transition:background 0.3s var(--ease);}
+.switch.on{background:linear-gradient(135deg,var(--primary),var(--accent));}
+.switch::after{content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:transform 0.3s var(--ease); box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+.switch.on::after{transform:translateX(22px);}
+
+.toast{position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(120%); background:var(--text-1); color:var(--bg-1); padding:14px 24px; border-radius:14px; font-size:14px; font-weight:600; box-shadow:0 20px 40px -12px rgba(0,0,0,0.4); z-index:999; transition:transform 0.45s var(--ease); display:flex; align-items:center; gap:10px; max-width:90vw;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+.section-title{font-family:'Poppins',sans-serif; font-weight:600; font-size:20px; margin:0 0 16px; display:flex; align-items:center; gap:10px;}
+
+/* ============================================================
+   10. BOTTOM NAV (mobile only)
+   ============================================================ */
+.bottom-nav{
+  display:none; position:fixed; left:0; right:0; bottom:0; z-index:500;
+  background:var(--surface); border-top:1px solid var(--surface-border);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 -10px 30px -12px rgba(31,32,58,0.15);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  justify-content:space-between; align-items:stretch;
+}
+.bottom-nav button{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  background:none; border:none; color:var(--text-3); padding:6px 2px; border-radius:12px; transition:all 0.25s var(--ease);
+}
+.bottom-nav button .bn-icon{font-size:19px; line-height:1;}
+.bottom-nav button .bn-label{font-size:10px; font-weight:700;}
+.bottom-nav button.active{color:var(--primary);}
+.bottom-nav button.active .bn-icon{transform:translateY(-2px);}
+
+@media (max-width:900px){ .grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:720px){
+  .grid-2{grid-template-columns:1fr;}
+  .hero h1{font-size:26px;}
+  .hero p{font-size:14px;}
+  .app-shell{padding:0 16px 96px;}
+  .topbar{flex-wrap:wrap; gap:10px;}
+  .nav-pill{display:none;} /* replaced by the bottom nav on mobile */
+  .bottom-nav{display:flex;}
+  .input-card, .panel, .auth-card{padding:22px 18px;}
+  .deck-stack{height:280px;}
+  .card-face{padding:22px;}
+  .card-actions{gap:10px;}
+  .card-actions .btn{padding:14px 18px; font-size:14px;}
+  table, thead, tbody, th, td, tr{display:block;}
+  thead{display:none;}
+  tbody tr{padding:14px 16px; border-bottom:1px solid var(--surface-border);}
+  tbody td{border:none; padding:6px 0;}
+  .cell-en{font-size:15.5px;}
+  td[data-label]::before{content:attr(data-label); display:block; font-size:10.5px; text-transform:uppercase; color:var(--text-3); font-weight:700; margin-bottom:4px; letter-spacing:.05em;}
+  .quiz-options{grid-template-columns:1fr;}
+  .calendar-grid{grid-template-columns:repeat(10,1fr);}
+  .match-grid{grid-template-columns:repeat(2,1fr);}
+  .profile-head{flex-direction:column; align-items:flex-start; text-align:left;}
+  .profile-head > div:last-child{margin-left:0 !important; width:100%;}
+  /* Toast would otherwise sit under the bottom nav bar, so move it up top on mobile. */
+  .toast{
+    bottom:auto; top:14px; transform:translateX(-50%) translateY(-140%);
+    left:50%; max-width:88vw;
+  }
+  .toast.show{ transform:translateX(-50%) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
+</style>
+</head>
+<body data-theme="light">
+
+<div class="app-shell" id="appShell">
+
+  <!-- ======================= AUTH: LOGIN ======================= -->
+  <section class="page active" id="page-login">
+    <div class="auth-wrap"><div class="auth-card">
+      <div class="brand auth-logo" style="cursor:pointer;"><span class="brand-mark">Lx</span> Lexi</div>
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-sub">Log in to keep your streak alive.</p>
+      <div class="auth-error" id="loginError"></div>
+      <div class="field"><label>Username</label><input type="text" id="loginUsername" placeholder="e.g. jasur99" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password"></div>
+      <button class="btn btn-primary btn-block btn-lg" id="loginBtn">Log in</button>
+      <div class="auth-switch">
+        <button id="goForgot">Forgot password?</button> &nbsp;·&nbsp;
+        No account? <button id="goSignup">Sign up</button>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ======================= AUTH: SIGNUP ======================= -->
+  <section class="page" id="page-signup">
+    <div class="auth-wrap"><div class="auth-card">
+      <div class="brand auth-logo" style="cursor:pointer;"><span class="brand-mark">Lx</span> Lexi</div>
+      <h2 class="auth-title">Create your account</h2>
+      <p class="auth-sub">Local account for now — phone login &amp; cloud sync coming later.</p>
+      <div class="auth-error" id="signupError"></div>
+      <div class="field-row">
+        <div class="field"><label>First name</label><input type="text" id="signupFirst" placeholder="Jasur"></div>
+        <div class="field"><label>Last name</label><input type="text" id="signupLast" placeholder="Karimov"></div>
+      </div>
+      <div class="field"><label>Username</label><input type="text" id="signupUsername" placeholder="Pick a username" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="signupPassword" placeholder="Create a password" autocomplete="new-password"></div>
+      <div class="field"><label>Security question (for password recovery)</label><input type="text" id="signupSecQ" placeholder="e.g. What city were you born in?"></div>
+      <div class="field"><label>Answer</label><input type="text" id="signupSecA" placeholder="Your answer"></div>
+      <div class="field"><label>Choose an avatar</label>
+        <div class="avatar-picker" id="avatarPicker"></div>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" id="signupBtn">Create account</button>
+      <div class="auth-switch">Already have an account? <button id="goLoginFromSignup">Log in</button></div>
+    </div></div>
+  </section>
+
+  <!-- ======================= AUTH: FORGOT PASSWORD ======================= -->
+  <section class="page" id="page-forgot">
+    <div class="auth-wrap"><div class="auth-card">
+      <div class="brand auth-logo" style="cursor:pointer;"><span class="brand-mark">Lx</span> Lexi</div>
+      <h2 class="auth-title">Reset your password</h2>
+      <p class="auth-sub">Answer your security question to reset it locally.</p>
+      <div class="auth-error" id="forgotError"></div>
+      <div class="field"><label>Username</label><input type="text" id="forgotUsername" placeholder="Your username"></div>
+      <button class="btn btn-ghost btn-block" id="forgotLoadBtn" style="margin-bottom:16px;">Find account</button>
+      <div id="forgotStep2" style="display:none;">
+        <div class="field"><label id="forgotQLabel">Security question</label><input type="text" id="forgotAnswer" placeholder="Your answer"></div>
+        <div class="field"><label>New password</label><input type="password" id="forgotNewPass" placeholder="New password"></div>
+        <button class="btn btn-primary btn-block btn-lg" id="forgotResetBtn">Reset password</button>
+      </div>
+      <div class="auth-switch"><button id="goLoginFromForgot">Back to log in</button></div>
+    </div></div>
+  </section>
+
+  <!-- ======================= MAIN APP (post-login) ======================= -->
+  <div id="mainApp" style="display:none;">
+    <header class="topbar">
+      <button class="brand" id="logoBtn" title="Go to Dashboard" style="border:none; background:none; padding:0; color:inherit;"><span class="brand-mark">Lx</span> Lexi</button>
+      <div class="nav-controls">
+        <nav class="nav-pill" id="navPill">
+          <button data-page="dashboard">Dashboard</button>
+          <button data-page="input">Add Words</button>
+          <button data-page="study">Study</button>
+          <button data-page="review">Review</button>
+          <button data-page="search">Search</button>
+        </nav>
+        <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+        <button class="avatar-chip" id="profileNavBtn"><span class="avatar-circle" id="topAvatar">?</span><span id="topName">User</span></button>
+      </div>
+    </header>
+    <nav class="bottom-nav" id="bottomNav">
+      <button data-page="dashboard"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
+      <button data-page="input"><span class="bn-icon">➕</span><span class="bn-label">Add</span></button>
+      <button data-page="study"><span class="bn-icon">🎓</span><span class="bn-label">Study</span></button>
+      <button data-page="review"><span class="bn-icon">📋</span><span class="bn-label">Review</span></button>
+      <button data-page="search"><span class="bn-icon">🔎</span><span class="bn-label">Search</span></button>
+      <button data-page="profile"><span class="bn-icon">👤</span><span class="bn-label">Profile</span></button>
+    </nav>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="page" id="page-dashboard">
+      <div class="dash-hero">
+        <div><h1 id="dashGreeting">Welcome back!</h1><p id="dashSub">Here's how your vocabulary journey is going.</p></div>
+        <div class="streak-badge"><span class="flame">🔥</span><span><span id="streakNum">0</span> day streak</span></div>
+      </div>
+
+      <div class="grid-4" id="dashStats"></div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>🎯 Goals</h3>
+          <div class="goal-row"><span class="goal-label">Daily</span><div class="goal-track"><div class="goal-fill" id="goalDailyFill"></div></div><span class="goal-num" id="goalDailyNum">0/10</span></div>
+          <div class="goal-row"><span class="goal-label">Weekly</span><div class="goal-track"><div class="goal-fill" id="goalWeeklyFill"></div></div><span class="goal-num" id="goalWeeklyNum">0/50</span></div>
+          <div class="goal-row"><span class="goal-label">Monthly</span><div class="goal-track"><div class="goal-fill" id="goalMonthlyFill"></div></div><span class="goal-num" id="goalMonthlyNum">0/200</span></div>
+        </div>
+        <div class="panel">
+          <h3>⭐ Level &amp; XP</h3>
+          <div class="xp-ring-wrap">
+            <div class="level-badge"><span>LEVEL</span><b id="levelNum">1</b></div>
+            <div style="flex:1;">
+              <div class="goal-track"><div class="goal-fill" id="xpFill"></div></div>
+              <div style="margin-top:8px; font-size:12.5px; color:var(--text-2);"><span id="xpNum">0</span> / 100 XP to next level</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>📅 Activity (last 14 days)</h3>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+
+      <h2 class="section-title">📖 Start studying</h2>
+      <div class="mode-grid">
+        <button class="mode-card" data-start-mode="flashcard"><span class="m-icon">🃏</span><h4>Flashcards</h4><p>Classic flip cards with 3D animation.</p></button>
+        <button class="mode-card" data-start-mode="typing"><span class="m-icon">⌨️</span><h4>Typing Mode</h4><p>See English, type the translation.</p></button>
+        <button class="mode-card" data-start-mode="writeword"><span class="m-icon">✍️</span><h4>Write the Word</h4><p>See the meaning, type the English word.</p></button>
+        <button class="mode-card" data-start-mode="quiz"><span class="m-icon">🎯</span><h4>Multiple Choice</h4><p>Pick the correct translation from 4 options.</p></button>
+        <button class="mode-card" data-start-mode="match"><span class="m-icon">🧩</span><h4>Matching Game</h4><p>Match English words to their translations.</p></button>
+        <button class="mode-card" data-start-mode="random"><span class="m-icon">🎲</span><h4>Random Test</h4><p>A shuffled mix of quiz and typing questions.</p></button>
+      </div>
+    </section>
+
+    <!-- ============ ADD WORDS (INPUT) ============ -->
+    <section class="page" id="page-input">
+      <div class="hero">
+        <span class="eyebrow">✦ Build your deck</span>
+        <h1>Add vocabulary</h1>
+        <p>Paste as many words as you like — 10 or 10,000, none of them get lost. Each will be auto-enriched with pronunciation and meaning where available.</p>
+      </div>
+      <div class="input-card">
+        <textarea id="vocabInput" placeholder="achieve - erishmoq
+improve - yaxshilamoq
+however - ammo
+benefit - foyda
+
+One word pair per line. Dashes, colons, extra spaces and stray characters are cleaned up automatically."></textarea>
+        <div class="format-hint">💡 Format: <b>english - translation</b>, one pair per line. Duplicates against your existing deck are skipped automatically; nothing is ever capped or truncated.</div>
+        <div class="enrich-bar" id="enrichBar"><div style="font-size:13px; color:var(--text-2);">Enriching <span id="enrichCount">0/0</span> words with pronunciation &amp; meaning…</div><div class="enrich-track"><div class="enrich-fill" id="enrichFill"></div></div></div>
+        <div class="input-footer">
+          <div class="saved-info">📚 <span><b id="savedCount">0</b> words saved in your deck</span></div>
+          <div style="display:flex; gap:12px;">
+            <button class="btn btn-ghost" id="clearAllBtn">Clear deck</button>
+            <button class="btn btn-primary btn-lg" id="startLearningBtn">Add &amp; Start Learning →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STUDY HUB (mode picker + filters) ============ -->
+    <section class="page" id="page-study">
+      <h2 class="section-title">🎓 Choose how to study</h2>
+      <div class="mode-controls" style="margin-bottom:22px;">
+        <button class="chip" id="studyShuffle">🔀 Shuffle</button>
+        <button class="chip" id="studyFavOnly">★ Favorites only</button>
+        <button class="chip" id="studyWrongOnly">🩹 Forgotten only</button>
+      </div>
+      <div class="mode-grid">
+        <button class="mode-card" data-start-mode="flashcard"><span class="m-icon">🃏</span><h4>Flashcards</h4><p>Classic flip cards, prev/next, 3D animation.</p></button>
+        <button class="mode-card" data-start-mode="typing"><span class="m-icon">⌨️</span><h4>Typing Mode</h4><p>See English, type the translation.</p></button>
+        <button class="mode-card" data-start-mode="writeword"><span class="m-icon">✍️</span><h4>Write the Word</h4><p>See the meaning, type the English word.</p></button>
+        <button class="mode-card" data-start-mode="quiz"><span class="m-icon">🎯</span><h4>Multiple Choice</h4><p>4 options, one correct answer.</p></button>
+        <button class="mode-card" data-start-mode="match"><span class="m-icon">🧩</span><h4>Matching Game</h4><p>Tap pairs to match them.</p></button>
+        <button class="mode-card" data-start-mode="random"><span class="m-icon">🎲</span><h4>Random Test</h4><p>Mixed quiz + typing questions.</p></button>
+      </div>
+    </section>
+
+    <!-- ============ ACTIVE SESSION (flashcard / typing / quiz / match / summary) ============ -->
+    <section class="page" id="page-session">
+      <div class="learn-top">
+        <div class="progress-wrap">
+          <div class="progress-meta"><span id="progressLabel">0 / 0</span><span id="progressPercent">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <button class="btn btn-ghost" id="exitSessionBtn">✕ Exit</button>
+      </div>
+      <div class="deck-zone" id="sessionZone"></div>
+    </section>
+
+    <!-- ============ REVIEW ============ -->
+    <section class="page" id="page-review">
+      <div class="finish-banner" id="finishBanner" style="display:none;"><h2>🎉 Deck complete!</h2><p>You've gone through every card. Write a sentence for each word below to lock it in.</p></div>
+      <div class="review-head"><h2 style="margin:0;">Your vocabulary</h2></div>
+      <div class="grid-4" id="reviewStats"></div>
+      <div class="toolbar">
+        <div class="search-box"><input type="text" id="reviewSearchInput" placeholder="Search vocabulary…"></div>
+        <button class="chip" id="filterFavBtn">★ Favorites</button>
+        <button class="chip" id="filterWrongBtn">🩹 Wrong only</button>
+        <button class="chip" id="filterAllBtn">All words</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:6%;"></th><th style="width:22%;">English</th><th style="width:20%;">Translation</th><th style="width:28%;">My sentence</th><th style="width:10%;"></th></tr></thead>
+          <tbody id="reviewTbody"></tbody>
+        </table>
+        <div class="no-results" id="noResults" style="display:none;">No words match your search.</div>
+      </div>
+    </section>
+
+    <!-- ============ SEARCH (DICTIONARY) ============ -->
+    <section class="page" id="page-search">
+      <h2 class="section-title">🔎 Search your vocabulary</h2>
+      <p style="color:var(--text-2); font-size:14px; margin-top:-10px;">Instant lookup across your own saved deck, in either direction.</p>
+      <div class="dict-search-bar">
+        <div class="search-box"><input type="text" id="dictSearchInput" placeholder="Type a word…"></div>
+        <div class="dict-switch"><span id="dictModeLabel">EN → UZ</span><button id="dictSwitchBtn" title="Switch direction">⇄</button></div>
+      </div>
+      <div class="dict-results" id="dictResults"></div>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="page" id="page-profile">
+      <div class="profile-head">
+        <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+        <div>
+          <h2 class="profile-name" id="profileFullName">—</h2>
+          <div class="profile-meta" id="profileUsernameLine">@username</div>
+          <div class="profile-meta">Joined <span id="profileJoined">—</span></div>
+        </div>
+        <div style="margin-left:auto; display:flex; gap:10px;">
+          <button class="btn btn-ghost" id="goSettingsBtn">⚙ Settings</button>
+          <button class="btn btn-danger-ghost" id="logoutBtn">Log out</button>
+        </div>
+      </div>
+      <div class="grid-4" id="profileStats"></div>
+      <div class="panel">
+        <h3>⭐ Level &amp; streak</h3>
+        <div class="xp-ring-wrap">
+          <div class="level-badge"><span>LEVEL</span><b id="profileLevel">1</b></div>
+          <div style="flex:1;">
+            <div class="goal-track"><div class="goal-fill" id="profileXpFill"></div></div>
+            <div style="margin-top:8px; font-size:12.5px; color:var(--text-2);"><span id="profileXpNum">0</span>/100 XP · 🔥 <span id="profileStreak">0</span> day streak · Longest: <span id="profileLongest">0</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="page" id="page-settings">
+      <h2 class="section-title">⚙ Settings</h2>
+
+      <div class="panel settings-section">
+        <h3>Profile</h3>
+        <div class="field-row">
+          <div class="field"><label>First name</label><input type="text" id="settingsFirst"></div>
+          <div class="field"><label>Last name</label><input type="text" id="settingsLast"></div>
+        </div>
+        <div class="field"><label>Choose an avatar</label><div class="avatar-picker" id="settingsAvatarPicker"></div></div>
+        <button class="btn btn-primary" id="saveProfileBtn">Save profile</button>
+      </div>
+
+      <div class="panel settings-section">
+        <h3>Goals</h3>
+        <div class="field-row">
+          <div class="field"><label>Daily goal (words)</label>
+            <select id="settingsDailyGoal">
+              <option value="100">100 words</option>
+              <option value="150">150 words</option>
+              <option value="200">200 words</option>
+              <option value="300">300 words</option>
+              <option value="unlimited">Unlimited</option>
+            </select>
+          </div>
+          <div class="field"><label>Weekly goal (words)</label><input type="number" id="settingsWeeklyGoal" min="100"></div>
+          <div class="field"><label>Monthly goal (words)</label><input type="number" id="settingsMonthlyGoal" min="100"></div>
+        </div>
+        <p style="color:var(--text-2); font-size:12.5px; margin:-4px 0 16px;">Your daily goal resets automatically every new day — your total learning history is always kept.</p>
+        <button class="btn btn-primary" id="saveGoalsBtn">Save goals</button>
+      </div>
+
+      <div class="panel settings-section">
+        <h3>Appearance</h3>
+        <div class="settings-row">
+          <div class="settings-row-label"><b>Dark mode</b><span>Switch between light and dark theme</span></div>
+          <div class="switch" id="settingsDarkSwitch"></div>
+        </div>
+      </div>
+
+      <div class="panel settings-section">
+        <h3>Security</h3>
+        <div class="field"><label>Current password</label><input type="password" id="settingsCurPass"></div>
+        <div class="field"><label>New password</label><input type="password" id="settingsNewPass"></div>
+        <button class="btn btn-primary" id="changePassBtn">Change password</button>
+      </div>
+
+      <div class="panel settings-section">
+        <h3>Data</h3>
+        <p style="color:var(--text-2); font-size:13.5px; margin-top:0;">Your data lives only in this browser for now. Export a backup, or import one on another device (real cloud sync arrives with Firebase later).</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-ghost" id="exportDataBtn">⬇ Export backup (.json)</button>
+          <button class="btn btn-ghost" id="importDataBtn">⬆ Import backup</button>
+          <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </div>
+      </div>
+
+      <div class="panel settings-section">
+        <h3>Danger zone</h3>
+        <button class="btn btn-danger-ghost" id="deleteAccountBtn">Delete account</button>
+      </div>
+    </section>
+
+  </div><!-- /mainApp -->
+</div><!-- /appShell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   LEXI — vocabulary mastery platform
+   All data is stored locally (localStorage) per browser.
+   Sections:
+     1. Storage & state
+     2. Utilities (toast, escape, xp/level/streak)
+     3. Auth (signup / login / logout / forgot password)
+     4. Navigation
+     5. Ripple + theme
+     6. Vocabulary input & parsing + dictionary enrichment
+     7. Dashboard
+     8. Study hub + generic session engine
+     9. Flashcard mode / Typing / Write-the-word / Quiz / Match / Random
+    10. Review page
+    11. Dictionary search page
+    12. Profile & settings
+    13. Init
+   ================================================================ */
+
+/* ---------------- 1. STORAGE & STATE ---------------- */
+const DB_KEY = 'lexiApp_v2';
+const DICT_CACHE_KEY = 'lexiDictCache_v1';
+
+let db = { users:{}, currentUser:null };       // persisted
+let dictCache = {};                             // persisted, shared across users
+let user = null;                                // convenience pointer to db.users[db.currentUser]
+
+const AVATARS = ['🦊','🐼','🦉','🐧','🐢','🦁','🐯','🐨','🐸','🦄','🐝','🦋'];
+
+function loadDb(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      db.users = parsed.users || {};
+      db.currentUser = parsed.currentUser || null;
+    }
+  }catch(e){ console.warn('load failed', e); }
+  try{
+    const rawCache = localStorage.getItem(DICT_CACHE_KEY);
+    if(rawCache) dictCache = JSON.parse(rawCache);
+  }catch(e){ dictCache = {}; }
+}
+function saveDb(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function saveDictCache(){ localStorage.setItem(DICT_CACHE_KEY, JSON.stringify(dictCache)); }
+
+function freshUser(firstName, lastName, username, password, secQ, secA, avatar){
+  const today = new Date().toISOString().slice(0,10);
+  return {
+    firstName, lastName, username, password, secQ, secA, avatar: avatar || AVATARS[0],
+    dateJoined: today,
+    xp:0, level:1,
+    streak:{current:0, longest:0, lastActive:null},
+    goals:{daily:100, weekly:500, monthly:2000},
+    activity:{},              // { 'YYYY-MM-DD': count of words studied }
+    totalMinutes:0,
+    words:[]                  // {id,en,uz,ipa,pos,synonyms,antonyms,example,sentence,favorite,learned,wrong}
+  };
+}
+
+function uid(){ return 'w' + Math.random().toString(36).slice(2,10); }
+
+/* ---------------- 2. UTILITIES ---------------- */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function addXP(amount){
+  if(!user) return;
+  user.xp += amount;
+  const newLevel = Math.floor(user.xp/100)+1;
+  if(newLevel > user.level){ user.level = newLevel; showToast(`🎉 Level up! You're now level ${newLevel}`); }
+}
+
+function touchStreakAndActivity(count=1){
+  if(!user) return;
+  const today = new Date().toISOString().slice(0,10);
+  user.activity[today] = (user.activity[today]||0) + count;
+  if(user.streak.lastActive !== today){
+    const y = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    user.streak.current = (user.streak.lastActive === y) ? user.streak.current + 1 : 1;
+    user.streak.lastActive = today;
+    if(user.streak.current > user.streak.longest) user.streak.longest = user.streak.current;
+  }
+}
+
+function dateKeysInRange(days){
+  const out = [];
+  for(let i=days-1;i>=0;i--) out.push(new Date(Date.now()-i*86400000).toISOString().slice(0,10));
+  return out;
+}
+function sumActivitySince(daysAgo){
+  if(!user) return 0;
+  const keys = new Set(dateKeysInRange(daysAgo));
+  let sum = 0;
+  for(const k in user.activity) if(keys.has(k)) sum += user.activity[k];
+  return sum;
+}
+
+/* Session timer -> approximate "learning time" */
+let sessionTimerStart = null;
+function startSessionTimer(){ sessionTimerStart = Date.now(); }
+function flushSessionTimer(){
+  if(sessionTimerStart && user){
+    const mins = (Date.now()-sessionTimerStart)/60000;
+    user.totalMinutes += mins;
+    sessionTimerStart = null;
+    saveDb();
+  }
+}
+window.addEventListener('beforeunload', flushSessionTimer);
+
+/* ---------------- 3. AUTH ---------------- */
+function renderAvatarPicker(containerId, selected, onSelect){
+  const el = document.getElementById(containerId);
+  el.innerHTML = AVATARS.map(a => `<button type="button" class="avatar-opt ${a===selected?'on':''}" data-avatar="${a}">${a}</button>`).join('');
+  el.querySelectorAll('.avatar-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      el.querySelectorAll('.avatar-opt').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      onSelect(btn.dataset.avatar);
+    });
+  });
+}
+let signupAvatar = AVATARS[0];
+let settingsAvatar = AVATARS[0];
+
+function showAuthError(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('show');
+}
+function hideAuthError(id){ document.getElementById(id).classList.remove('show'); }
+
+function goAuthPage(pageId){
+  ['page-login','page-signup','page-forgot'].forEach(p=>document.getElementById(p).classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+}
+document.getElementById('goSignup').addEventListener('click', ()=>goAuthPage('page-signup'));
+document.getElementById('goLoginFromSignup').addEventListener('click', ()=>goAuthPage('page-login'));
+document.getElementById('goForgot').addEventListener('click', ()=>goAuthPage('page-forgot'));
+document.getElementById('goLoginFromForgot').addEventListener('click', ()=>goAuthPage('page-login'));
+
+renderAvatarPicker('avatarPicker', signupAvatar, (a)=> signupAvatar = a);
+
+document.getElementById('signupBtn').addEventListener('click', ()=>{
+  hideAuthError('signupError');
+  const first = document.getElementById('signupFirst').value.trim();
+  const last = document.getElementById('signupLast').value.trim();
+  const username = document.getElementById('signupUsername').value.trim().toLowerCase();
+  const password = document.getElementById('signupPassword').value;
+  const secQ = document.getElementById('signupSecQ').value.trim();
+  const secA = document.getElementById('signupSecA').value.trim().toLowerCase();
+
+  if(!first || !username || !password || !secQ || !secA){
+    showAuthError('signupError','Please fill in all required fields.'); return;
+  }
+  if(db.users[username]){
+    showAuthError('signupError','That username is already taken.'); return;
+  }
+  db.users[username] = freshUser(first, last, username, password, secQ, secA, signupAvatar);
+  db.currentUser = username;
+  saveDb();
+  showToast(`Welcome, ${first}! Your account is ready.`);
+  enterApp();
+});
+
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  hideAuthError('loginError');
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const u = db.users[username];
+  if(!u || u.password !== password){
+    showAuthError('loginError','Incorrect username or password.'); return;
+  }
+  db.currentUser = username;
+  saveDb();
+  enterApp();
+});
+
+let forgotUserRef = null;
+document.getElementById('forgotLoadBtn').addEventListener('click', ()=>{
+  hideAuthError('forgotError');
+  const username = document.getElementById('forgotUsername').value.trim().toLowerCase();
+  const u = db.users[username];
+  if(!u){ showAuthError('forgotError','No account with that username.'); return; }
+  forgotUserRef = u;
+  document.getElementById('forgotQLabel').textContent = u.secQ;
+  document.getElementById('forgotStep2').style.display = 'block';
+});
+document.getElementById('forgotResetBtn').addEventListener('click', ()=>{
+  hideAuthError('forgotError');
+  const answer = document.getElementById('forgotAnswer').value.trim().toLowerCase();
+  const newPass = document.getElementById('forgotNewPass').value;
+  if(!forgotUserRef){ return; }
+  if(answer !== forgotUserRef.secA){ showAuthError('forgotError','That answer does not match.'); return; }
+  if(!newPass){ showAuthError('forgotError','Enter a new password.'); return; }
+  forgotUserRef.password = newPass;
+  saveDb();
+  showToast('Password reset — you can log in now.');
+  goAuthPage('page-login');
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  flushSessionTimer();
+  db.currentUser = null;
+  saveDb();
+  user = null;
+  document.getElementById('mainApp').style.display = 'none';
+  goAuthPage('page-login');
+});
+
+function enterApp(){
+  user = db.users[db.currentUser];
+  // Migration: enforce the new 100-word daily minimum for accounts created before this existed.
+  // `null` means the user has explicitly chosen "Unlimited" and is left untouched.
+  if(typeof user.goals.daily === 'number' && user.goals.daily < 100) user.goals.daily = 100;
+  if(typeof user.goals.weekly === 'number' && user.goals.weekly < 100) user.goals.weekly = 500;
+  if(typeof user.goals.monthly === 'number' && user.goals.monthly < 100) user.goals.monthly = 2000;
+  saveDb();
+  document.getElementById('mainApp').style.display = 'block';
+  document.querySelectorAll('#appShell > .page').forEach(p=>p.classList.remove('active'));
+  applyTheme();
+  document.getElementById('topAvatar').textContent = user.avatar;
+  document.getElementById('topName').textContent = user.firstName;
+  goToPage('dashboard');
+}
+
+/* ---------------- 4. NAVIGATION ---------------- */
+function goToPage(pageId){
+  document.querySelectorAll('#mainApp .page, #appShell > .page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('#navPill button').forEach(b=> b.classList.toggle('active', b.dataset.page === pageId));
+  document.querySelectorAll('#bottomNav button').forEach(b=> b.classList.toggle('active', b.dataset.page === pageId));
+  if(pageId === 'dashboard') renderDashboard();
+  if(pageId === 'input') updateSavedCount();
+  if(pageId === 'review') renderReviewPage();
+  if(pageId === 'search') renderDictSearch();
+  if(pageId === 'profile') renderProfile();
+  if(pageId === 'settings') renderSettings();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.getElementById('navPill').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-page]');
+  if(btn) goToPage(btn.dataset.page);
+});
+document.getElementById('bottomNav').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-page]');
+  if(btn) goToPage(btn.dataset.page);
+});
+document.getElementById('profileNavBtn').addEventListener('click', ()=> goToPage('profile'));
+document.getElementById('goSettingsBtn').addEventListener('click', ()=> goToPage('settings'));
+
+// Clicking the Lexi logo always goes Home: the dashboard if logged in, the login page otherwise.
+document.getElementById('logoBtn').addEventListener('click', ()=>{
+  if(user) goToPage('dashboard'); else goAuthPage('page-login');
+});
+document.querySelectorAll('.auth-logo').forEach(el=>{
+  el.addEventListener('click', ()=> goAuthPage('page-login'));
+});
+
+/* ---------------- 5. RIPPLE + THEME ---------------- */
+document.addEventListener('click', (e)=>{
+  const target = e.target.closest('.btn, .chip, .mode-card');
+  if(!target) return;
+  const rect = target.getBoundingClientRect();
+  const ripple = document.createElement('span');
+  const size = Math.max(rect.width, rect.height);
+  ripple.className = 'ripple';
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+  target.style.position = target.style.position || 'relative';
+  target.style.overflow = 'hidden';
+  target.appendChild(ripple);
+  setTimeout(()=> ripple.remove(), 650);
+});
+
+function applyTheme(){
+  const dark = user ? !!user.settingsDark : false;
+  document.body.dataset.theme = dark ? 'dark' : 'light';
+  document.getElementById('themeToggle').textContent = dark ? '☀️' : '🌙';
+}
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  if(!user) return;
+  user.settingsDark = !user.settingsDark;
+  applyTheme();
+  saveDb();
+});
+
+/* ---------------- 6. VOCAB INPUT, PARSING, ENRICHMENT ---------------- */
+const vocabInput = document.getElementById('vocabInput');
+vocabInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') e.stopPropagation(); });
+
+function parseVocabText(text){
+  const lines = text.split('\n');
+  const parsed = [];
+  for(const rawLine of lines){
+    // Clean stray whitespace/tabs first.
+    const line = rawLine.replace(/\t/g,' ').trim();
+    if(!line) continue;
+    // Accept -, –, —, or : as the separator, with any amount of surrounding whitespace.
+    const match = line.match(/^(.+?)\s*[-–—:]\s*(.+)$/);
+    if(!match) continue;
+    const en = match[1].trim().replace(/\s+/g,' ');
+    const uz = match[2].trim().replace(/\s+/g,' ');
+    if(en && uz) parsed.push({en, uz});
+  }
+  return parsed;
+}
+
+function updateSavedCount(){ document.getElementById('savedCount').textContent = user ? user.words.length : 0; }
+
+document.getElementById('startLearningBtn').addEventListener('click', ()=>{
+  const parsed = parseVocabText(vocabInput.value);
+  if(parsed.length === 0 && user.words.length === 0){
+    showToast('⚠️ Add at least one word in the format: word - translation');
+    return;
+  }
+  let added = 0;
+  if(parsed.length > 0){
+    const existingEn = new Set(user.words.map(w=>w.en.toLowerCase()));
+    const newWords = [];
+    for(const p of parsed){
+      if(existingEn.has(p.en.toLowerCase())) continue;
+      const w = {id:uid(), en:p.en, uz:p.uz, ipa:'', pos:'', synonyms:[], antonyms:[], example:'', sentence:'', favorite:false, learned:false, wrong:false};
+      user.words.push(w);
+      newWords.push(w);
+      existingEn.add(p.en.toLowerCase());
+      added++;
+    }
+    saveDb();
+    vocabInput.value = '';
+    if(added > 0){
+      showToast(`✅ Added ${added} new word${added>1?'s':''}`);
+      enrichWords(newWords);
+    }
+  }
+  updateSavedCount();
+  goToPage('study');
+});
+
+document.getElementById('clearAllBtn').addEventListener('click', ()=>{
+  if(user.words.length === 0){ showToast('Deck is already empty'); return; }
+  if(confirm('This deletes your entire saved deck. Continue?')){
+    user.words = [];
+    saveDb();
+    updateSavedCount();
+    showToast('🗑️ Deck cleared');
+  }
+});
+
+/* Best-effort dictionary enrichment via a free public API (English words only).
+   Runs in the background, in small concurrent batches, and never blocks study. */
+async function fetchDictEntry(word){
+  const key = word.toLowerCase();
+  if(dictCache[key] !== undefined) return dictCache[key];
+  try{
+    const res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(key));
+    if(!res.ok){ dictCache[key] = null; return null; }
+    const data = await res.json();
+    const entry = data[0];
+    if(!entry){ dictCache[key] = null; return null; }
+    let ipa = entry.phonetic || '';
+    if(!ipa && Array.isArray(entry.phonetics)){
+      const withText = entry.phonetics.find(p=>p.text);
+      if(withText) ipa = withText.text;
+    }
+    let pos = '', example = '', synonyms = [], antonyms = [];
+    if(Array.isArray(entry.meanings) && entry.meanings.length){
+      pos = entry.meanings[0].partOfSpeech || '';
+      for(const m of entry.meanings){
+        if(Array.isArray(m.synonyms)) synonyms.push(...m.synonyms);
+        if(Array.isArray(m.antonyms)) antonyms.push(...m.antonyms);
+        if(Array.isArray(m.definitions)){
+          for(const d of m.definitions){
+            if(Array.isArray(d.synonyms)) synonyms.push(...d.synonyms);
+            if(Array.isArray(d.antonyms)) antonyms.push(...d.antonyms);
+            if(!example && d.example) example = d.example;
+          }
+        }
+      }
+    }
+    const result = { ipa, pos, example, synonyms:[...new Set(synonyms)].slice(0,6), antonyms:[...new Set(antonyms)].slice(0,6) };
+    dictCache[key] = result;
+    return result;
+  }catch(e){
+    // Offline, blocked, or word not found — fail gracefully, core app still works.
+    return dictCache[key] !== undefined ? dictCache[key] : null;
+  }
+}
+
+async function enrichWords(words){
+  if(!words.length) return;
+  const bar = document.getElementById('enrichBar');
+  bar.classList.add('show');
+  let done = 0;
+  const total = words.length;
+  const updateBar = ()=>{
+    document.getElementById('enrichCount').textContent = `${done}/${total}`;
+    document.getElementById('enrichFill').style.width = Math.round((done/total)*100) + '%';
+  };
+  updateBar();
+
+  const CONCURRENCY = 6;
+  let cursor = 0;
+  async function worker(){
+    while(cursor < words.length){
+      const w = words[cursor++];
+      const data = await fetchDictEntry(w.en);
+      if(data){
+        w.ipa = data.ipa || ''; w.pos = data.pos || ''; w.example = data.example || '';
+        w.synonyms = data.synonyms || []; w.antonyms = data.antonyms || [];
+      }
+      done++;
+      updateBar();
+    }
+  }
+  await Promise.all(Array.from({length:Math.min(CONCURRENCY, words.length)}, worker));
+  saveDictCache();
+  saveDb();
+  setTimeout(()=> bar.classList.remove('show'), 1200);
+  // Refresh any visible page that shows word details.
+  if(document.getElementById('page-review').classList.contains('active')) renderReviewPage();
+}
+
+/* ---------------- 7. DASHBOARD ---------------- */
+function renderDashboard(){
+  document.getElementById('dashGreeting').textContent = `Welcome back, ${user.firstName}!`;
+  document.getElementById('streakNum').textContent = user.streak.current;
+
+  const total = user.words.length;
+  const learned = user.words.filter(w=>w.learned).length;
+  const remaining = total - learned;
+  const favCount = user.words.filter(w=>w.favorite).length;
+  const wrongCount = user.words.filter(w=>w.wrong).length;
+  const pct = total ? Math.round((learned/total)*100) : 0;
+
+  document.getElementById('dashStats').innerHTML = [
+    ['📚', total, 'Total words'],
+    ['✅', learned, 'Learned'],
+    ['⏳', remaining, 'Remaining'],
+    ['📈', pct+'%', 'Progress']
+  ].map(([icon,num,label])=>`<div class="stat-card"><div class="stat-num">${num}</div><div class="stat-label">${icon} ${label}</div></div>`).join('');
+
+  const todayCount = sumActivitySince(1);
+  const weekCount = sumActivitySince(7);
+  const monthCount = sumActivitySince(30);
+  setGoalBar('goalDailyFill','goalDailyNum', todayCount, user.goals.daily);
+  setGoalBar('goalWeeklyFill','goalWeeklyNum', weekCount, user.goals.weekly);
+  setGoalBar('goalMonthlyFill','goalMonthlyNum', monthCount, user.goals.monthly);
+
+  document.getElementById('levelNum').textContent = user.level;
+  const xpInLevel = user.xp % 100;
+  document.getElementById('xpFill').style.width = xpInLevel + '%';
+  document.getElementById('xpNum').textContent = xpInLevel;
+
+  renderCalendar('calendarGrid', 14);
+}
+
+function setGoalBar(fillId,numId,current,goal){
+  if(goal === null){ // Unlimited
+    document.getElementById(fillId).style.width = '100%';
+    document.getElementById(numId).textContent = `${current} · Unlimited`;
+    return;
+  }
+  const pct = goal ? Math.min(100, Math.round((current/goal)*100)) : 0;
+  document.getElementById(fillId).style.width = pct + '%';
+  document.getElementById(numId).textContent = `${current}/${goal}`;
+}
+
+function renderCalendar(containerId, days){
+  const el = document.getElementById(containerId);
+  const keys = dateKeysInRange(days);
+  el.innerHTML = keys.map(k=>{
+    const count = (user.activity[k]||0);
+    let level = 0;
+    if(count>0) level=1; if(count>=5) level=2; if(count>=10) level=3; if(count>=20) level=4;
+    return `<div class="cal-cell" data-level="${level}" title="${k}: ${count} words"></div>`;
+  }).join('');
+}
+
+document.querySelectorAll('[data-start-mode]').forEach(btn=>{
+  btn.addEventListener('click', ()=> startSession(btn.dataset.startMode));
+});
+
+/* Study hub filter chips (affect the next session started) */
+let studyFilters = { shuffle:false, favOnly:false, wrongOnly:false };
+document.getElementById('studyShuffle').addEventListener('click', function(){ studyFilters.shuffle = !studyFilters.shuffle; this.classList.toggle('on', studyFilters.shuffle); });
+document.getElementById('studyFavOnly').addEventListener('click', function(){ studyFilters.favOnly = !studyFilters.favOnly; studyFilters.wrongOnly=false; document.getElementById('studyWrongOnly').classList.remove('on'); this.classList.toggle('on', studyFilters.favOnly); });
+document.getElementById('studyWrongOnly').addEventListener('click', function(){ studyFilters.wrongOnly = !studyFilters.wrongOnly; studyFilters.favOnly=false; document.getElementById('studyFavOnly').classList.remove('on'); this.classList.toggle('on', studyFilters.wrongOnly); });
+
+/* ---------------- 8. GENERIC SESSION ENGINE ---------------- */
+let session = { mode:null, queue:[], index:0, score:{correct:0, wrong:0} };
+
+function buildPool(){
+  let pool = user.words.slice();
+  if(studyFilters.favOnly) pool = pool.filter(w=>w.favorite);
+  if(studyFilters.wrongOnly) pool = pool.filter(w=>w.wrong);
+  return pool;
+}
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function getWordById(id){ return user.words.find(w=>w.id===id); }
+
+function startSession(mode){
+  let pool = buildPool();
+  if(pool.length === 0){
+    showToast('No words available for this filter yet.');
+    return;
+  }
+  if(studyFilters.shuffle || mode==='random' || mode==='quiz' || mode==='match') pool = shuffleArray(pool);
+  session = { mode, queue: pool.map(w=>w.id), index:0, score:{correct:0, wrong:0} };
+  startSessionTimer();
+  goToPage('session');
+  renderSession();
+}
+
+document.getElementById('exitSessionBtn').addEventListener('click', ()=>{
+  flushSessionTimer();
+  goToPage('study');
+});
+
+function updateProgressBar(index, total){
+  const shown = Math.min(index, total);
+  document.getElementById('progressLabel').textContent = `${shown} / ${total}`;
+  const pct = total===0?0:Math.round((shown/total)*100);
+  document.getElementById('progressPercent').textContent = pct+'%';
+  document.getElementById('progressFill').style.width = pct+'%';
+}
+
+function renderSession(){
+  const total = session.queue.length;
+  updateProgressBar(session.index, total);
+  if(session.index >= total){
+    flushSessionTimer();
+    saveDb();
+    renderSessionSummary();
+    return;
+  }
+  if(session.mode === 'flashcard') renderFlashcard();
+  else if(session.mode === 'typing') renderTyping(false);
+  else if(session.mode === 'writeword') renderTyping(true);
+  else if(session.mode === 'quiz') renderQuiz();
+  else if(session.mode === 'match') renderMatch();
+  else if(session.mode === 'random') renderRandom();
+}
+
+function renderSessionSummary(){
+  const zone = document.getElementById('sessionZone');
+  const { correct, wrong } = session.score;
+  const attempted = correct + wrong;
+  zone.innerHTML = `
+    <div class="panel summary-card">
+      <div class="big-emoji">${attempted>0 && correct/attempted>=0.8 ? '🏆' : '🎉'}</div>
+      <h2>Session complete!</h2>
+      <p style="color:var(--text-2);">Nice work, ${escapeHtml(user.firstName)}.</p>
+      <div class="summary-stats">
+        ${attempted>0 ? `<div class="summary-stat"><b style="color:var(--success)">${correct}</b><span>Correct</span></div><div class="summary-stat"><b style="color:var(--danger)">${wrong}</b><span>Missed</span></div>` : `<div class="summary-stat"><b>${session.queue.length}</b><span>Cards reviewed</span></div>`}
+      </div>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="backToHubBtn">← Study hub</button>
+        <button class="btn btn-primary" id="toReviewBtn">Open review page →</button>
+      </div>
+    </div>`;
+  document.getElementById('backToHubBtn').addEventListener('click', ()=> goToPage('study'));
+  document.getElementById('toReviewBtn').addEventListener('click', ()=> goToPage('review'));
+}
+
+/* ---------------- 9a. FLASHCARD MODE ---------------- */
+let cardFlipped = false;
+function renderFlashcard(){
+  cardFlipped = false;
+  const word = getWordById(session.queue[session.index]);
+  const zone = document.getElementById('sessionZone');
+  zone.innerHTML = `
+    <div class="deck-stack">
+      <div class="deck-behind b2"></div>
+      <div class="deck-behind b1"></div>
+      <div class="flashcard pulse" id="flashcard">
+        <div class="card-face front">
+          <span class="card-tag">English</span>
+          <button class="fav-star ${word.favorite?'active':''}" id="favBtn">★</button>
+          <div class="card-word">${escapeHtml(word.en)}</div>
+          ${word.ipa ? `<div class="card-ipa">${escapeHtml(word.ipa)}</div>` : ''}
+          ${word.pos ? `<div class="card-pos">${escapeHtml(word.pos)}</div>` : ''}
+          <span class="flip-hint">↕ Space to flip</span>
+        </div>
+        <div class="card-face back">
+          <span class="card-tag">Translation</span>
+          <button class="fav-star ${word.favorite?'active':''}" id="favBtnBack">★</button>
+          <div class="card-word">${escapeHtml(word.uz)}</div>
+          <div class="card-sub">${escapeHtml(word.en)}${word.example ? ' — "'+escapeHtml(word.example)+'"' : ''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-ghost" id="prevBtn" ${session.index===0?'disabled':''}>← Previous</button>
+      <button class="btn btn-danger-ghost" id="forgotBtn">✗ I forgot</button>
+      <button class="btn btn-primary btn-lg" id="nextBtn">NEXT →</button>
+    </div>`;
+  document.getElementById('flashcard').addEventListener('click', flipCard);
+  document.getElementById('favBtn').addEventListener('click', e=>{e.stopPropagation(); toggleFavorite(word);});
+  document.getElementById('favBtnBack').addEventListener('click', e=>{e.stopPropagation(); toggleFavorite(word);});
+  document.getElementById('nextBtn').addEventListener('click', flashcardNext);
+  document.getElementById('prevBtn').addEventListener('click', flashcardPrev);
+  document.getElementById('forgotBtn').addEventListener('click', ()=>{
+    word.wrong = true; saveDb(); showToast(`Added "${word.en}" to forgotten words`); flashcardNext();
+  });
+}
+function flipCard(){
+  const card = document.getElementById('flashcard');
+  if(!card) return;
+  cardFlipped = !cardFlipped;
+  card.classList.toggle('flipped', cardFlipped);
+}
+function toggleFavorite(word){ word.favorite = !word.favorite; saveDb(); renderFlashcard(); }
+function flashcardNext(){
+  const word = getWordById(session.queue[session.index]);
+  if(word){ word.learned = true; touchStreakAndActivity(1); addXP(2); }
+  saveDb();
+  session.index++;
+  renderSession();
+}
+function flashcardPrev(){
+  if(session.index>0){ session.index--; renderSession(); }
+}
+
+/* ---------------- 9b. TYPING MODE / WRITE THE WORD ---------------- */
+function renderTyping(reverse){
+  const word = getWordById(session.queue[session.index]);
+  const prompt = reverse ? word.uz : word.en;
+  const label = reverse ? 'Type the English word' : 'Type the translation';
+  const zone = document.getElementById('sessionZone');
+  zone.innerHTML = `
+    <div class="type-panel">
+      <div class="card-tag" style="position:static; display:block; margin-bottom:10px;">${reverse?'Meaning':'English'}</div>
+      <div class="type-prompt">${escapeHtml(prompt)}</div>
+      <div class="type-hint">${label} · press Enter to check</div>
+      <input type="text" class="type-input" id="typeInput" autocomplete="off" autofocus>
+      <div class="type-feedback" id="typeFeedback"></div>
+      <div class="card-actions">
+        <button class="btn btn-primary btn-lg" id="typeCheckBtn">Check</button>
+      </div>
+    </div>`;
+  const input = document.getElementById('typeInput');
+  input.focus();
+  let checked = false;
+  function check(){
+    if(checked) { advanceTyping(); return; }
+    checked = true;
+    const answer = reverse ? word.en : word.uz;
+    const isCorrect = input.value.trim().toLowerCase() === answer.trim().toLowerCase();
+    const fb = document.getElementById('typeFeedback');
+    if(isCorrect){
+      input.classList.add('correct'); fb.textContent = '✓ Correct!'; fb.className='type-feedback correct';
+      session.score.correct++; addXP(5);
+    }else{
+      input.classList.add('wrong'); fb.textContent = `✗ Correct answer: ${answer}`; fb.className='type-feedback wrong';
+      session.score.wrong++; word.wrong = true;
+    }
+    word.learned = true; touchStreakAndActivity(1); saveDb();
+    document.getElementById('typeCheckBtn').textContent = session.index+1>=session.queue.length ? 'Finish' : 'Next →';
+  }
+  function advanceTyping(){ session.index++; renderSession(); }
+  document.getElementById('typeCheckBtn').addEventListener('click', check);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); check(); } });
+}
+
+/* ---------------- 9c. MULTIPLE CHOICE / QUIZ ---------------- */
+function renderQuiz(){
+  const word = getWordById(session.queue[session.index]);
+  const distractorPool = user.words.filter(w=>w.id!==word.id);
+  const distractors = shuffleArray(distractorPool).slice(0,3).map(w=>w.uz);
+  const options = shuffleArray([word.uz, ...distractors]);
+  const zone = document.getElementById('sessionZone');
+  zone.innerHTML = `
+    <div class="type-panel">
+      <div class="card-tag" style="position:static; display:block; margin-bottom:10px;">English</div>
+      <div class="type-prompt">${escapeHtml(word.en)}</div>
+      ${word.ipa ? `<div class="card-ipa" style="margin-bottom:14px;">${escapeHtml(word.ipa)}</div>` : ''}
+      <div class="type-hint">Choose the correct translation</div>
+    </div>
+    <div class="quiz-options" id="quizOptions">
+      ${options.map(o=>`<button class="quiz-opt" data-val="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join('')}
+    </div>`;
+  const buttons = zone.querySelectorAll('.quiz-opt');
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      buttons.forEach(b=>b.disabled=true);
+      const correct = btn.dataset.val === word.uz;
+      if(correct){ btn.classList.add('correct'); session.score.correct++; addXP(5); }
+      else{
+        btn.classList.add('wrong'); session.score.wrong++; word.wrong = true;
+        buttons.forEach(b=>{ if(b.dataset.val===word.uz) b.classList.add('correct'); });
+      }
+      word.learned = true; touchStreakAndActivity(1); saveDb();
+      setTimeout(()=>{ session.index++; renderSession(); }, 800);
+    });
+  });
+}
+
+/* ---------------- 9d. MATCHING GAME ---------------- */
+let matchState = null;
+function renderMatch(){
+  const roundIds = session.queue.slice(session.index, session.index+6);
+  const roundWords = roundIds.map(getWordById).filter(Boolean);
+  if(roundWords.length === 0){ session.index = session.queue.length; renderSession(); return; }
+  const left = roundWords.map(w=>({id:w.id, text:w.en, side:'en'}));
+  const right = shuffleArray(roundWords.map(w=>({id:w.id, text:w.uz, side:'uz'})));
+  matchState = { pairs: roundWords, matched:new Set(), selected:null };
+
+  const zone = document.getElementById('sessionZone');
+  zone.innerHTML = `
+    <div style="text-align:center; margin-bottom:10px; color:var(--text-2); font-size:14px;">Tap an English word, then its translation</div>
+    <div class="match-grid" id="matchGrid"></div>`;
+  const grid = document.getElementById('matchGrid');
+  const tiles = shuffleArray([...left, ...right]);
+  grid.innerHTML = tiles.map(t=>`<button class="match-tile" data-id="${t.id}" data-side="${t.side}">${escapeHtml(t.text)}</button>`).join('');
+
+  grid.querySelectorAll('.match-tile').forEach(tile=>{
+    tile.addEventListener('click', ()=> handleMatchClick(tile));
+  });
+}
+function handleMatchClick(tile){
+  if(tile.classList.contains('matched')) return;
+  if(!matchState.selected){
+    matchState.selected = tile;
+    tile.classList.add('selected');
+    return;
+  }
+  if(matchState.selected === tile){ tile.classList.remove('selected'); matchState.selected = null; return; }
+  const a = matchState.selected, b = tile;
+  if(a.dataset.id === b.dataset.id && a.dataset.side !== b.dataset.side){
+    a.classList.remove('selected'); a.classList.add('matched'); b.classList.add('matched');
+    matchState.matched.add(a.dataset.id);
+    session.score.correct++;
+    const word = getWordById(a.dataset.id);
+    if(word){ word.learned = true; }
+    touchStreakAndActivity(1); addXP(4); saveDb();
+    matchState.selected = null;
+    if(matchState.matched.size === matchState.pairs.length){
+      setTimeout(()=>{ session.index += matchState.pairs.length; renderSession(); }, 500);
+    }
+  }else{
+    b.classList.add('shake'); a.classList.add('shake');
+    session.score.wrong++;
+    setTimeout(()=>{ a.classList.remove('selected','shake'); b.classList.remove('shake'); matchState.selected=null; }, 450);
+  }
+}
+
+/* ---------------- 9e. RANDOM TEST (mixed quiz/typing) ---------------- */
+function renderRandom(){
+  // Deterministic-ish mix based on index so it stays stable across a render.
+  const useQuiz = Math.random() < 0.5;
+  if(useQuiz) renderQuiz(); else renderTyping(Math.random()<0.5);
+}
+
+/* Keyboard shortcuts for flashcards */
+document.addEventListener('keydown', (e)=>{
+  if(!document.getElementById('page-session').classList.contains('active')) return;
+  if(session.mode !== 'flashcard') return;
+  if(e.code === 'Space'){ e.preventDefault(); flipCard(); }
+  else if(e.code === 'ArrowRight'){ e.preventDefault(); flashcardNext(); }
+  else if(e.code === 'ArrowLeft'){ e.preventDefault(); flashcardPrev(); }
+});
+
+/* ---------------- 10. REVIEW PAGE ---------------- */
+let reviewFilter = 'all';
+let reviewSearch = '';
+
+function renderReviewPage(){
+  const total = user.words.length;
+  const learned = user.words.filter(w=>w.learned).length;
+  const wrong = user.words.filter(w=>w.wrong).length;
+  const pct = total ? Math.round((learned/total)*100) : 0;
+  document.getElementById('reviewStats').innerHTML = [
+    ['📚', total, 'Total words'], ['✅', learned, 'Learned'], ['📈', pct+'%', 'Progress'], ['🩹', wrong, 'Wrong words']
+  ].map(([icon,num,label])=>`<div class="stat-card"><div class="stat-num">${num}</div><div class="stat-label">${icon} ${label}</div></div>`).join('');
+
+  document.getElementById('finishBanner').style.display = (total>0 && learned===total) ? 'block' : 'none';
+  document.getElementById('filterFavBtn').classList.toggle('on', reviewFilter==='favorites');
+  document.getElementById('filterWrongBtn').classList.toggle('on', reviewFilter==='wrong');
+  document.getElementById('filterAllBtn').classList.toggle('on', reviewFilter==='all');
+  renderReviewTable();
+}
+
+let reviewPageSize = 150; // rendered rows grow as the user asks for more — keeps huge decks fast
+function renderReviewTable(){
+  let list = user.words.slice();
+  if(reviewFilter==='favorites') list = list.filter(w=>w.favorite);
+  if(reviewFilter==='wrong') list = list.filter(w=>w.wrong);
+  if(reviewSearch.trim()){
+    const q = reviewSearch.trim().toLowerCase();
+    list = list.filter(w=> w.en.toLowerCase().includes(q) || w.uz.toLowerCase().includes(q));
+  }
+  const tbody = document.getElementById('reviewTbody');
+  const noResults = document.getElementById('noResults');
+  if(list.length===0){ tbody.innerHTML=''; noResults.style.display='block'; return; }
+  noResults.style.display='none';
+
+  const visible = list.slice(0, reviewPageSize);
+  const remaining = list.length - visible.length;
+
+  tbody.innerHTML = visible.map(w => `
+    <tr data-id="${w.id}">
+      <td data-label="Fav"><button class="row-fav-btn ${w.favorite?'active':''}" data-action="fav">★</button></td>
+      <td data-label="English"><div class="cell-en">${escapeHtml(w.en)}${w.wrong?'<span class="tag-wrong">wrong</span>':''}${w.ipa?`<small>${escapeHtml(w.ipa)}${w.pos?' · '+escapeHtml(w.pos):''}</small>`:''}</div></td>
+      <td data-label="Translation">${escapeHtml(w.uz)}</td>
+      <td data-label="My sentence"><input class="sentence-input" data-action="sentence" placeholder="Write your own sentence…" value="${escapeHtml(w.sentence||'')}"></td>
+      <td data-label=""><button class="detail-toggle" data-action="details">${(w.synonyms&&w.synonyms.length)||(w.antonyms&&w.antonyms.length)||w.example ? 'Details ▾':''}</button></td>
+    </tr>
+    ${renderDetailRowIfAny(w)}
+  `).join('');
+}
+function renderDetailRowIfAny(w){
+  const hasDetails = (w.synonyms&&w.synonyms.length) || (w.antonyms&&w.antonyms.length) || w.example;
+  if(!hasDetails) return '';
+  return `<tr class="detail-row" data-detail-for="${w.id}" style="display:none;"><td colspan="5">
+    <div class="detail-grid">
+      ${w.example ? `<div><b>Example</b><br>“${escapeHtml(w.example)}”</div>`:''}
+      ${w.synonyms&&w.synonyms.length ? `<div><b>Synonyms</b><br>${escapeHtml(w.synonyms.join(', '))}</div>`:''}
+      ${w.antonyms&&w.antonyms.length ? `<div><b>Antonyms</b><br>${escapeHtml(w.antonyms.join(', '))}</div>`:''}
+    </div>
+  </td></tr>`;
+}
+
+document.getElementById('reviewTbody').addEventListener('click', (e)=>{
+  const favBtn = e.target.closest('[data-action="fav"]');
+  if(favBtn){
+    const row = e.target.closest('tr');
+    const word = getWordById(row.dataset.id);
+    word.favorite = !word.favorite; saveDb(); renderReviewPage();
+    return;
+  }
+  const detBtn = e.target.closest('[data-action="details"]');
+  if(detBtn){
+    const row = e.target.closest('tr');
+    const detailRow = document.querySelector(`[data-detail-for="${row.dataset.id}"]`);
+    if(detailRow) detailRow.style.display = detailRow.style.display === 'none' ? 'table-row' : 'none';
+  }
+});
+document.getElementById('reviewTbody').addEventListener('input', (e)=>{
+  const input = e.target.closest('[data-action="sentence"]');
+  if(!input) return;
+  const row = e.target.closest('tr');
+  const word = getWordById(row.dataset.id);
+  word.sentence = input.value;
+  saveDb();
+});
+document.getElementById('reviewSearchInput').addEventListener('input', e=>{ reviewSearch = e.target.value; renderReviewTable(); });
+document.getElementById('filterFavBtn').addEventListener('click', ()=>{ reviewFilter = reviewFilter==='favorites'?'all':'favorites'; renderReviewPage(); });
+document.getElementById('filterWrongBtn').addEventListener('click', ()=>{ reviewFilter = reviewFilter==='wrong'?'all':'wrong'; renderReviewPage(); });
+document.getElementById('filterAllBtn').addEventListener('click', ()=>{ reviewFilter = 'all'; renderReviewPage(); });
+
+/* ---------------- 11. DICTIONARY SEARCH PAGE ---------------- */
+let dictDirection = 'en_uz'; // en_uz | uz_en
+document.getElementById('dictSwitchBtn').addEventListener('click', ()=>{
+  dictDirection = dictDirection==='en_uz' ? 'uz_en' : 'en_uz';
+  document.getElementById('dictModeLabel').textContent = dictDirection==='en_uz' ? 'EN → UZ' : 'UZ → EN';
+  renderDictSearch();
+});
+document.getElementById('dictSearchInput').addEventListener('input', renderDictSearch);
+
+function renderDictSearch(){
+  const q = document.getElementById('dictSearchInput').value.trim().toLowerCase();
+  const results = document.getElementById('dictResults');
+  if(!user){ return; }
+
+  // Keep the page empty until the user actually starts typing.
+  if(!q){
+    results.innerHTML = `<div class="no-results">Start typing to search your vocabulary and the built-in dictionary.</div>`;
+    return;
+  }
+
+  let matches = user.words.filter(w => dictDirection==='en_uz' ? w.en.toLowerCase().includes(q) : w.uz.toLowerCase().includes(q));
+  matches = matches.slice(0, 60); // display cap only, underlying data is never trimmed
+
+  if(matches.length===0){
+    results.innerHTML = `<div class="no-results">No matches in your deck yet.</div>`;
+    if(dictDirection==='en_uz') queueLiveDictLookup(q);
+    return;
+  }
+  results.innerHTML = matches.map(w=>{
+    const headWord = dictDirection==='en_uz' ? w.en : w.uz;
+    const subWord = dictDirection==='en_uz' ? w.uz : w.en;
+    return `<div class="dict-result">
+      <div class="dict-result-head">
+        <h4>${escapeHtml(headWord)}</h4>
+        ${dictDirection==='en_uz' && w.ipa ? `<span class="card-ipa">${escapeHtml(w.ipa)}</span>`:''}
+        ${dictDirection==='en_uz' && w.pos ? `<span class="card-pos">${escapeHtml(w.pos)}</span>`:''}
+        ${w.favorite ? '<span style="color:var(--star);">★</span>':''}
+      </div>
+      <div style="margin-top:8px; color:var(--text-2); font-size:14.5px;">→ ${escapeHtml(subWord)}</div>
+      ${w.example ? `<div style="margin-top:6px; font-size:13px; color:var(--text-3);">“${escapeHtml(w.example)}”</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* Falls back to the free built-in English dictionary (via api.dictionaryapi.dev) when a
+   word isn't in the user's own deck yet. Debounced so fast typing doesn't spam requests. */
+let liveDictTimer = null;
+let liveDictToken = 0;
+function queueLiveDictLookup(word){
+  clearTimeout(liveDictTimer);
+  const myToken = ++liveDictToken;
+  liveDictTimer = setTimeout(async ()=>{
+    const data = await fetchDictEntry(word);
+    if(myToken !== liveDictToken) return; // a newer search superseded this one
+    const results = document.getElementById('dictResults');
+    // Only append if the "no matches" state from this same query is still showing.
+    if(document.getElementById('dictSearchInput').value.trim().toLowerCase() !== word) return;
+    if(!data){
+      results.insertAdjacentHTML('beforeend', `<div class="no-results">Not found in the built-in dictionary either.</div>`);
+      return;
+    }
+    results.insertAdjacentHTML('beforeend', `
+      <div class="dict-result">
+        <div class="dict-result-head">
+          <h4>${escapeHtml(word)}</h4>
+          ${data.ipa ? `<span class="card-ipa">${escapeHtml(data.ipa)}</span>`:''}
+          ${data.pos ? `<span class="card-pos">${escapeHtml(data.pos)}</span>`:''}
+          <span class="tag-wrong" style="color:var(--accent); background:rgba(6,182,212,0.12);">from built-in dictionary</span>
+        </div>
+        ${data.example ? `<div style="margin-top:8px; font-size:13.5px; color:var(--text-2);">“${escapeHtml(data.example)}”</div>`:''}
+        ${data.synonyms&&data.synonyms.length ? `<div style="margin-top:6px; font-size:12.5px; color:var(--text-3);">Synonyms: ${escapeHtml(data.synonyms.join(', '))}</div>`:''}
+        <button class="btn btn-ghost" style="margin-top:12px; padding:9px 16px; font-size:13px;" data-quick-add="${escapeHtml(word)}">+ Add to my deck</button>
+      </div>`);
+  }, 350);
+}
+document.getElementById('dictResults').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-quick-add]');
+  if(!btn) return;
+  const en = btn.dataset.quickAdd;
+  const uz = prompt(`Translation for "${en}"?`);
+  if(!uz || !uz.trim()) return;
+  if(user.words.some(w=>w.en.toLowerCase()===en.toLowerCase())){ showToast('Already in your deck'); return; }
+  const w = {id:uid(), en, uz:uz.trim(), ipa:'', pos:'', synonyms:[], antonyms:[], example:'', sentence:'', favorite:false, learned:false, wrong:false};
+  user.words.push(w);
+  saveDb();
+  enrichWords([w]);
+  showToast(`✅ Added "${en}" to your deck`);
+  renderDictSearch();
+});
+
+/* ---------------- 12. PROFILE & SETTINGS ---------------- */
+function renderProfile(){
+  document.getElementById('profileAvatarLg').textContent = user.avatar;
+  document.getElementById('profileFullName').textContent = `${user.firstName} ${user.lastName||''}`.trim();
+  document.getElementById('profileUsernameLine').textContent = '@' + user.username;
+  document.getElementById('profileJoined').textContent = user.dateJoined;
+
+  const total = user.words.length;
+  const learned = user.words.filter(w=>w.learned).length;
+  const favCount = user.words.filter(w=>w.favorite).length;
+  const wrongCount = user.words.filter(w=>w.wrong).length;
+  document.getElementById('profileStats').innerHTML = [
+    ['📚', learned, 'Words learned'], ['★', favCount, 'Favorites'], ['🩹', wrongCount, 'Forgotten'], ['⏱️', Math.round(user.totalMinutes)+'m', 'Learning time']
+  ].map(([icon,num,label])=>`<div class="stat-card"><div class="stat-num">${num}</div><div class="stat-label">${icon} ${label}</div></div>`).join('');
+
+  document.getElementById('profileLevel').textContent = user.level;
+  document.getElementById('profileXpFill').style.width = (user.xp % 100) + '%';
+  document.getElementById('profileXpNum').textContent = user.xp % 100;
+  document.getElementById('profileStreak').textContent = user.streak.current;
+  document.getElementById('profileLongest').textContent = user.streak.longest;
+}
+
+function renderSettings(){
+  document.getElementById('settingsFirst').value = user.firstName;
+  document.getElementById('settingsLast').value = user.lastName || '';
+  settingsAvatar = user.avatar;
+  renderAvatarPicker('settingsAvatarPicker', settingsAvatar, a=>settingsAvatar=a);
+  document.getElementById('settingsDailyGoal').value = user.goals.daily === null ? 'unlimited' : String(user.goals.daily);
+  document.getElementById('settingsWeeklyGoal').value = user.goals.weekly === null ? '' : user.goals.weekly;
+  document.getElementById('settingsMonthlyGoal').value = user.goals.monthly === null ? '' : user.goals.monthly;
+  document.getElementById('settingsDarkSwitch').classList.toggle('on', !!user.settingsDark);
+}
+document.getElementById('settingsDarkSwitch').addEventListener('click', function(){
+  user.settingsDark = !user.settingsDark;
+  this.classList.toggle('on', user.settingsDark);
+  applyTheme(); saveDb();
+});
+document.getElementById('saveProfileBtn').addEventListener('click', ()=>{
+  user.firstName = document.getElementById('settingsFirst').value.trim() || user.firstName;
+  user.lastName = document.getElementById('settingsLast').value.trim();
+  user.avatar = settingsAvatar;
+  saveDb();
+  document.getElementById('topAvatar').textContent = user.avatar;
+  document.getElementById('topName').textContent = user.firstName;
+  showToast('✅ Profile saved');
+});
+document.getElementById('saveGoalsBtn').addEventListener('click', ()=>{
+  const dailyRaw = document.getElementById('settingsDailyGoal').value;
+  user.goals.daily = dailyRaw === 'unlimited' ? null : (parseInt(dailyRaw) || 100);
+  user.goals.weekly = parseInt(document.getElementById('settingsWeeklyGoal').value) || user.goals.weekly;
+  user.goals.monthly = parseInt(document.getElementById('settingsMonthlyGoal').value) || user.goals.monthly;
+  saveDb();
+  renderDashboard();
+  showToast('✅ Goals updated');
+});
+document.getElementById('changePassBtn').addEventListener('click', ()=>{
+  const cur = document.getElementById('settingsCurPass').value;
+  const next = document.getElementById('settingsNewPass').value;
+  if(cur !== user.password){ showToast('⚠️ Current password is incorrect'); return; }
+  if(!next){ showToast('⚠️ Enter a new password'); return; }
+  user.password = next; saveDb();
+  document.getElementById('settingsCurPass').value=''; document.getElementById('settingsNewPass').value='';
+  showToast('✅ Password changed');
+});
+document.getElementById('exportDataBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(user, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `lexi-backup-${user.username}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  showToast('⬇ Backup downloaded');
+});
+document.getElementById('importDataBtn').addEventListener('click', ()=> document.getElementById('importFileInput').click());
+document.getElementById('importFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const imported = JSON.parse(reader.result);
+      if(!imported.username){ showToast('⚠️ Not a valid Lexi backup file'); return; }
+      db.users[imported.username] = imported;
+      db.currentUser = imported.username;
+      saveDb();
+      enterApp();
+      showToast('✅ Backup restored');
+    }catch(err){ showToast('⚠️ Could not read that file'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+document.getElementById('deleteAccountBtn').addEventListener('click', ()=>{
+  if(confirm('This permanently deletes your account and all saved words on this device. Continue?')){
+    delete db.users[user.username];
+    db.currentUser = null;
+    saveDb();
+    user = null;
+    document.getElementById('mainApp').style.display='none';
+    goAuthPage('page-login');
+    showToast('Account deleted');
+  }
+});
+
+/* ---------------- 13. INIT ---------------- */
+(function init(){
+  loadDb();
+  if(db.currentUser && db.users[db.currentUser]){
+    enterApp();
+  }else{
+    goAuthPage('page-login');
+  }
+})();
+</script>
+</body>
+</html>
